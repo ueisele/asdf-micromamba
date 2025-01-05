@@ -31,12 +31,47 @@ list_all_versions() {
 	list_github_tags
 }
 
+get_os() {
+	local os="$(uname -o)"
+	if [[ "${os}" == "GNU/Linux" ]]; then
+		echo "linux"
+	elif [[ "${os}" == "Darwin" ]]; then
+		echo "osx"
+	else
+		echo "${os}"
+	fi
+}
+
+get_platform() {
+	local os="$(uname -o)"
+	local machine="$(uname -m)"
+	if [[ "${os}" == "GNU/Linux" ]]; then
+		if [ "${machine}" == "x86_64" ]; then
+			echo "linux-64"
+		elif [ "${machine}" == "arm64" ]; then
+			echo "linux-aarch64"
+		else
+			echo "linux-${machine}"
+		fi
+	elif [[ "${os}" == "Darwin" ]]; then
+		if [ "${machine}" == "x86_64" ]; then
+			echo "osx-64"
+		elif [ "${machine}" == "arm64" ]; then
+			echo "osx-arm64"
+		else
+			echo "osx-${machine}"
+		fi
+	else
+		echo "${os}-${machine}"
+	fi
+}
+
 download_release() {
 	local version filename url
 	version="$1"
 	filename="$2"
 
-	url="$GH_REPO/releases/download/${version}/micromamba-linux-64"
+	url="$GH_REPO/releases/download/${version}/micromamba-$(get_platform)"
 
 	echo "* Downloading $TOOL_CMD release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
